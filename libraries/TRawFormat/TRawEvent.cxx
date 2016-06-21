@@ -10,6 +10,7 @@
 
 #include "TGEBEvent.h"
 #include "TNSCLEvent.h"
+#include "TGSEvent.h"
 
 ClassImp(TRawEvent)
 
@@ -69,7 +70,8 @@ Int_t TRawEvent::GetEventType() const {
   case GRETINA_MODE2:
   case GRETINA_MODE3:
     return ((GEBHeader*)(&fEventHeader))->type();
-
+  case GAMMASPHERE_DAT:
+    return fEventHeader.datum1;
   default:
     ;
   }
@@ -85,6 +87,8 @@ Int_t TRawEvent::GetBodySize() const {
   case GRETINA_MODE2:
   case GRETINA_MODE3:
     return ((GEBHeader*)(&fEventHeader))->size() + sizeof(Long_t);  //Size in gretinadaq is exclusive, plus timestamp
+  case GAMMASPHERE_DAT:
+    return fEventHeader.datum2 - sizeof(uint16_t) - sizeof(uint16_t);
 
   default:
     return 0;
@@ -137,6 +141,8 @@ const char* TRawEvent::GetPayload() const {
    case GRETINA_MODE2:
    case GRETINA_MODE3:
      return ((TGEBEvent*)this)->GetPayload();
+  case GAMMASPHERE_DAT:
+     return ((TGSEvent*)this)->GetPayload();
 
    default:
      ;
@@ -161,6 +167,8 @@ TSmartBuffer TRawEvent::GetPayloadBuffer() const {
    case GRETINA_MODE2:
    case GRETINA_MODE3:
      return ((TGEBEvent*)this)->GetPayloadBuffer();
+  case GAMMASPHERE_DAT:
+     return ((TGSEvent*)this)->GetPayloadBuffer();
 
    default:
      ;

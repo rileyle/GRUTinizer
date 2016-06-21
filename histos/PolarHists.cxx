@@ -81,9 +81,9 @@ void MakeHistograms(TRuntimeObjects& obj) {
 //    }
   }
 
-  if(!gretina || gretina->Size()<1 || gretina->Size()>(7*4)) {
+  if(!gretina || gretina->Size()<1 ) { // || gretina->Size()>(7*4)) {
     entry++;
-    printf("Here\n"); fflush(stdout);
+  //  printf("Here\n"); fflush(stdout);
     return;
   }
 
@@ -98,35 +98,37 @@ void MakeHistograms(TRuntimeObjects& obj) {
     //  continue;
 
     std::string histname;
-    gsum += hit.GetCoreEnergy(0);
-    if(hit.GetCoreEnergy(0)>largesteng) {
-      largesteng = hit.GetCoreEnergy(0);
+    gsum += hit.GetCoreEnergy();
+    if(hit.GetCoreEnergy()>largesteng) {
+      largesteng = hit.GetCoreEnergy();
       largesthit = y;
     }
+
+
     for(int z=y+1;z<gretina->Size();z++) {
       TGretinaHit hit2 = gretina->GetGretinaHit(z);
       //if(hit2.NumberOfInteractions()<1 || hit2.GetSegmentId(0)<1 || hit2.GetPad()>0) 
       //  continue;
       histname = "Gamma_Gamma";
-      obj.FillHistogramSym(histname,2000,0,4000,hit.GetCoreEnergy(0),
-                                    2000,0,4000,hit2.GetCoreEnergy(0));
+      obj.FillHistogramSym(histname,2000,0,4000,hit.GetCoreEnergy(),
+                                    2000,0,4000,hit2.GetCoreEnergy());
       histname = "Gamma_Gamma_Time";
       obj.FillHistogram(histname,800,-400,400,hit2.GetTime()-hit.GetTime(),
-                                  2000,0,4000,hit2.GetCoreEnergy(0));
+                                  2000,0,4000,hit2.GetCoreEnergy());
       obj.FillHistogram(histname,800,-400,400,hit.GetTime()-hit2.GetTime(),
-                                  2000,0,4000,hit.GetCoreEnergy(0));
+                                  2000,0,4000,hit.GetCoreEnergy());
     }   
 
     histname = "Gretina_Energy_Time";
-    obj.FillHistogram(histname,1000,0,4000,hit.GetCoreEnergy(0),
+    obj.FillHistogram(histname,1000,0,4000,hit.GetCoreEnergy(),
                                5000,0,5000,gretina->Timestamp()/1e8-first_time);
 
     histname = Form("Gretina%03i_Energy_Time",hit.GetCrystalId());
-    obj.FillHistogram(histname,1000,0,4000,hit.GetCoreEnergy(0),
+    obj.FillHistogram(histname,1000,0,4000,hit.GetCoreEnergy(),
                                5000,0,5000,gretina->Timestamp()/1e8-first_time);
 
     histname = "Gretina_Energy_Entry";
-    obj.FillHistogram(histname,1000,0,4000,hit.GetCoreEnergy(0),
+    obj.FillHistogram(histname,1000,0,4000,hit.GetCoreEnergy(),
                                9000,0,9000000,entry);
     entry++;
 
@@ -159,35 +161,50 @@ void MakeHistograms(TRuntimeObjects& obj) {
 
     histname = "GretinaEnergyXId";
     obj.FillHistogram(histname,200,0,200,hit.GetCrystalId(),
-                               8000,0,4000,hit.GetCoreEnergy(0));
+                               8000,0,4000,hit.GetCoreEnergy());
 
     histname = "GretinaEnergyXIdCal";
     obj.FillHistogram(histname,200,0,200,hit.GetCrystalId(),
-                               8000,0,4000,hit.GetCoreEnergy(0));
+                               8000,0,4000,hit.GetCoreEnergy());
+
+    histname = "GretinaCarge0XIdCal";
+    obj.FillHistogram(histname,200,0,200,hit.GetCrystalId(),
+                               8000,0,32000,hit.GetCoreCharge(0));
+    histname = "GretinaCarge1XIdCal";
+    obj.FillHistogram(histname,200,0,200,hit.GetCrystalId(),
+                               8000,0,32000,hit.GetCoreCharge(1));
+    histname = "GretinaCarge2XIdCal";
+    obj.FillHistogram(histname,200,0,200,hit.GetCrystalId(),
+                               8000,0,32000,hit.GetCoreCharge(2));
+    histname = "GretinaCarge3XIdCal";
+    obj.FillHistogram(histname,200,0,200,hit.GetCrystalId(),
+                               8000,0,32000,hit.GetCoreCharge(3));
+
+
 
 
     histname = "GretinaEnergyTheta";
     obj.FillHistogram(histname,314,0,3.14,hit.GetTheta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
     
     histname = "Gretina_Theta_bySegment";
     obj.FillHistogram(histname,314,0,3.14,hit.GetSegmentPosition().Theta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
     
     histname = "Gretina_Theta_byCrystal";
     obj.FillHistogram(histname,314,0,3.14,hit.GetCrystalPosition().Theta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
 
     histname = "Gretina_Theta_byDecomp";
     obj.FillHistogram(histname,314,0,3.14,hit.GetPosition().Theta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
     
     histname = Form("GretinaPosition");
     obj.FillHistogram(histname,628,0,6.28,hit.GetPhi(),
                                 314,0,3.14,hit.GetTheta());
 
     histname = "GretinaEnergySum";
-    obj.FillHistogram(histname,8000,0,4000,hit.GetCoreEnergy(0));
+    obj.FillHistogram(histname,8000,0,4000,hit.GetCoreEnergy());
     
     histname = "GretinaDopplerSum";
     obj.FillHistogram(histname,8000,0,4000,hit.GetDoppler(BETA));
@@ -217,20 +234,20 @@ void MakeHistograms(TRuntimeObjects& obj) {
     histname = "Gretina_Theta_bySegment";
     histname.append(layer);
     obj.FillHistogram(histname,314,0,3.14,hit.GetSegmentPosition().Theta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
 
     histname = "Gretina_Theta_byCrystal";
     histname.append(layer);
     obj.FillHistogram(histname,314,0,3.14,hit.GetCrystalPosition().Theta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
     
     histname = "Gretina_Theta_byDecomp";
     histname.append(layer);
     obj.FillHistogram(histname,314,0,3.14,hit.GetPosition().Theta(),
-                              4000,0,4000,hit.GetCoreEnergy(0));
+                              4000,0,4000,hit.GetCoreEnergy());
     
     histname = "GretinaOverview";
-    obj.FillHistogram(histname,4000,0,4000,hit.GetCoreEnergy(0),
+    obj.FillHistogram(histname,4000,0,4000,hit.GetCoreEnergy(),
                                   60,20,80,hit.GetCrystalId());
 
  

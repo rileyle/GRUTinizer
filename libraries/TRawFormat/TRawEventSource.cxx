@@ -134,7 +134,8 @@ int TRawEventByteSource::GetEvent(TRawEvent& rawevent) {
     case kFileType::GRETINA_MODE2:
     case kFileType::GRETINA_MODE3:
       break;
-
+    case kFileType::GAMMASPHERE_DAT:
+      break;
     default:
       std::cout << "Unknown file type: " << fFileType << std::endl;
       return -4;
@@ -144,20 +145,38 @@ int TRawEventByteSource::GetEvent(TRawEvent& rawevent) {
   rawevent.Clear();
   rawevent.SetFileType(fFileType);
 
-  int bytes_read_header = FillBuffer(sizeof(TRawEvent::RawHeader));
-  // If not enough was read, check the errno.
-  // If it is 0, we may still receive more data. (e.g. reading from ring)
-  // If it is nonzero, we are done. (e.g. end of file)
-  if(bytes_read_header == 0) {
-    if(GetLastErrno()){
-      return -1;
-    } else {
-      return 0;
+  if(fFileType==kFileType::GAMMASPHERE_DAT) {
+    uint16_t temp_header[2];
+    int bytes_read_header = FillBuffer(sizeof(temp_header));
+    // If not enough was read, check the errno.
+    // If it is 0, we may still receive more data. (e.g. reading from ring)
+    // If it is nonzero, we are done. (e.g. end of file)
+    if(bytes_read_header == 0) {
+      if(GetLastErrno()){
+        return -1;
+      } else {
+        return 0;
+      }
     }
+    memcpy(temp_header, fCurrentBuffer.GetData(), sizeof(temp_header));
+    rawevent.GetRawHeader()->datum1 = __builtin_bswap16(temp_header[0]);
+    rawevent.GetRawHeader()->datum2 = __builtin_bswap16(temp_header[1]);
+    fCurrentBuffer.Advance(sizeof(temp_header));
+  } else {
+    int bytes_read_header = FillBuffer(sizeof(TRawEvent::RawHeader));
+    // If not enough was read, check the errno.
+    // If it is 0, we may still receive more data. (e.g. reading from ring)
+    // If it is nonzero, we are done. (e.g. end of file)
+    if(bytes_read_header == 0) {
+      if(GetLastErrno()){
+        return -1;
+      } else {
+        return 0;
+      }
+    }
+    memcpy(rawevent.GetRawHeader(), fCurrentBuffer.GetData(), sizeof(TRawEvent::RawHeader));
+    fCurrentBuffer.Advance(sizeof(TRawEvent::RawHeader));
   }
-
-  memcpy(rawevent.GetRawHeader(), fCurrentBuffer.GetData(), sizeof(TRawEvent::RawHeader));
-  fCurrentBuffer.Advance(sizeof(TRawEvent::RawHeader));
 
   if(!rawevent.IsGoodSize()) {
     SetLastErrno(-1);
@@ -177,6 +196,9 @@ int TRawEventByteSource::GetEvent(TRawEvent& rawevent) {
   size_t total_bytes = sizeof(TRawEvent::RawHeader) + body_size;
   return total_bytes;
 }
+
+
+
 
 int TRawEventByteSource::FillBuffer(size_t bytes_requested) {
   // //std::cout << "UNBUFFERED READ" << std::endl;

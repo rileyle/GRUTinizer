@@ -116,7 +116,7 @@ while test $# -gt 0; do
       if test "x$libsout" = "xyes" ; then
         out=$"$out $grutmore "
       else
-        out=$"$out -L${libdir} $grutlibs $detlibs $grutmore -lXMLParser -lXMLIO -lX11 -lXpm -lProof -lGuiHtml "
+        out=$"$out -L${libdir} $grutlibs $detlibs $grutmore  -lXMLIO -lX11 -lXpm -lProof -lGuiHtml "
       fi
       ;;
     --root)
