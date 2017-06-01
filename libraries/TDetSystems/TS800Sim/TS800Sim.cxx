@@ -49,7 +49,7 @@ void TS800Sim::BuildFrom(TGEBEvent &event){
   TS800SimHit hit;
   hit.fATA = s800pack->GetATA(); 
   hit.fBTA = s800pack->GetBTA(); 
-  hit.fDTA = s800pack->GetDTA()*100.; 
+  hit.fDTA = s800pack->GetDTA(); 
   hit.fYTA = s800pack->GetYTA(); 
   s800sim_hits.push_back(hit);
   //exit(1);

@@ -61,7 +61,7 @@ void TGretSim::BuildFrom(TGEBEvent &event){
     hit.fBeta = packet->data[i].GetBeta(); 
     hit.fInteraction.SetXYZ(packet->data[i].GetX(),packet->data[i].GetY(),packet->data[i].GetZ()); 
     hit.fPosit.SetMagThetaPhi(1.0,packet->data[i].GetTheta(),packet->data[i].GetPhi()); 
-   
+
     gretsim_hits.push_back(hit);
   }
 

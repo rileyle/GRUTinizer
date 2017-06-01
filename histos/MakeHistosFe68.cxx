@@ -71,13 +71,14 @@ void MakeHistograms(TRuntimeObjects& obj) {
   TS800 *s800       = obj.GetDetector<TS800>();
   TS800Sim *s800Sim = obj.GetDetector<TS800Sim>();
   TGretSim *gretSim = obj.GetDetector<TGretSim>();
+
+  TList *list = &(obj.GetObjects());
+  int numobj = list->GetSize();
   
-  if(!gretina)
-    return;
   if(!s800Sim)
     return;
-
-  Double_t dta = s800Sim->GetS800SimHit(0).GetDTA();
+  
+  Double_t dta = s800Sim->GetS800SimHit(0).GetDTA()*100.;
 
   // Rough dta acceptance cut
   if(dta < -6. || dta > 6.)
@@ -87,11 +88,45 @@ void MakeHistograms(TRuntimeObjects& obj) {
 		    4096, -6, 6,
 		    dta);
 
+  Double_t xsin, ysin, scatter;
+
+  xsin =  sin(s800Sim->GetS800SimHit(0).GetATA()/1000.);
+  ysin = -sin(s800Sim->GetS800SimHit(0).GetBTA()/1000.);
+  scatter = asin(sqrt(xsin*xsin + ysin*ysin))*1000.;
+
+  obj.FillHistogram("s800","scatter",
+		    4096, 0, 300,
+		    scatter);
+    
   if(gretSim){
     obj.FillHistogram("sim","beta",
 		      500, 0, 0.5,
 		      gretSim->GetGretinaSimHit(0).GetBeta());
+    obj.FillHistogram("sim","z",
+		      1000,-5,5.,
+		      gretSim->GetGretinaSimHit(0).GetZ());
+
+    obj.FillHistogram("sim","beta_z",
+		      1000,-5,5.,
+		      gretSim->GetGretinaSimHit(0).GetZ(),
+		      300, 0.2, 0.5,
+		      gretSim->GetGretinaSimHit(0).GetBeta());
+    
   }
+
+  if(!gretina)
+    return;
+
+  double xoffset = GValue::Value("GRETINA_X_OFFSET");
+  if(std::isnan(xoffset))
+    xoffset=0.00;
+  double yoffset = GValue::Value("GRETINA_Y_OFFSET");
+  if(std::isnan(yoffset))
+    yoffset=0.00;
+  double zoffset = GValue::Value("GRETINA_Z_OFFSET");
+  if(std::isnan(zoffset))
+    zoffset=0.00;
+  TVector3 targetOffset(xoffset,yoffset,zoffset);
   
   const Int_t    nBetas = 3;
   Double_t betas[nBetas] = {0.373, 0.3873, 0.400}; // Fe68
@@ -147,23 +182,23 @@ void MakeHistograms(TRuntimeObjects& obj) {
       obj.FillHistogram("energy",
 			Form("dop_%.0f", betas[i]*10000),
 			energyNChannels, energyLlim, energyUlim,
-			hit.GetDoppler(betas[i]));
+			hit.GetDoppler_2(betas[i]));
 
       obj.FillHistogram("energy",
 			Form("dop_%.0f_gaus", betas[i]*10000),
 			energyNChannels, energyLlim, energyUlim,
-			hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+			hit.GetDoppler_2(betas[i])*gRandom->Gaus(1,1./1000.));
 
       if(hit.GetHoleNumber() < 10){
 	obj.FillHistogram("energy",
 			  Form("dop_fw_%.0f_gaus", betas[i]*10000),
 			  energyNChannels, energyLlim, energyUlim,
-			  hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+			  hit.GetDoppler_2(betas[i])*gRandom->Gaus(1,1./1000.));
       } else {
 	obj.FillHistogram("energy",
 			  Form("dop_bw_%.0f_gaus", betas[i]*10000),
 			  energyNChannels, energyLlim, energyUlim,
-			  hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+			  hit.GetDoppler_2(betas[i])*gRandom->Gaus(1,1./1000.));
       }
     }
     
@@ -172,6 +207,21 @@ void MakeHistograms(TRuntimeObjects& obj) {
 		      hit.GetPhi()*TMath::RadToDeg(),
 		      180, 0., 180.,
 		      hit.GetTheta()*TMath::RadToDeg());
+
+    if(hit.GetHoleNumber() < 10){
+      obj.FillHistogram("position", "theta_vs_phi_fw",
+			360, 0., 360.,
+			hit.GetPhi()*TMath::RadToDeg(),
+			180, 0., 180.,
+			hit.GetTheta()*TMath::RadToDeg());
+    } else {
+      obj.FillHistogram("position", "theta_vs_phi_bw",
+			360, 0., 360.,
+			hit.GetPhi()*TMath::RadToDeg(),
+			180, 0., 180.,
+			hit.GetTheta()*TMath::RadToDeg());
+    }
+    
   }
   
   // Addback
@@ -227,10 +277,11 @@ void MakeHistograms(TRuntimeObjects& obj) {
 
       // Find the largest IP in the cluster and save its position
       // for Doppler correction.
-      if(cluster[i].GetSegmentEng(0) > firstHitEnergy){
+      if(cluster[i].GetSegmentEng(cluster[i].GetFirstIntPoint())
+	 > firstHitEnergy){
 	firstHitHoleNum = cluster[i].GetHoleNumber();
-	firstHitPos = cluster[i].GetInteractionPosition(0);
-	firstHitEnergy = cluster[i].GetSegmentEng(0);
+	firstHitPos = cluster[i].GetInteractionPosition(cluster[i].GetFirstIntPoint()) - targetOffset;
+	firstHitEnergy = cluster[i].GetSegmentEng(cluster[i].GetFirstIntPoint());
       }
       
       for(int j = i+1; j < cluster.size(); j++){
@@ -410,9 +461,6 @@ void MakeHistograms(TRuntimeObjects& obj) {
 		      10, 0, 10, cluster.size());
     
   }
-  
-  TList *list = &(obj.GetObjects());
-  int numobj = list->GetSize();
   
   if(numobj!=list->GetSize())
     list->Sort();

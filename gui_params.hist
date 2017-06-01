@@ -2,6 +2,7 @@
  'tcuts': [],
  'variables': {'AFP_COEF': 1200,
                'BETA': 0.404,
+	       'GRETINA_Z_OFFSET': 1.0,
                'CRDCX_COEF': 0.15,
                'E1_TDC_high': 8000,
                'E1_TDC_low': -8000,

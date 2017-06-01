@@ -32,13 +32,15 @@ public:
   void  Print(Option_t *opt="") const;
   void  Clear(Option_t *opt="");
 
-  int    GetEn() const   { return fEnergy; }
+  double GetEn() const   { return fEnergy; }
   double GetBeta() const { return fBeta; }
-  double GetX()  const   { return fPosit.X(); }
-  double GetY()  const   { return fPosit.Y(); }
-  double GetZ()  const   { return fPosit.Z(); }
+  /* double GetX()  const   { return fPosit.X(); } */
+  /* double GetY()  const   { return fPosit.Y(); } */
+  /* double GetZ()  const   { return fPosit.Z(); } */
+  double GetX()  const   { return fInteraction.X(); }
+  double GetY()  const   { return fInteraction.Y(); }
+  double GetZ()  const   { return fInteraction.Z(); }
   
-
   double GetDoppler(const TVector3 *vec=0) {
 
     if(vec==0) {
@@ -51,26 +53,25 @@ public:
   }
 
 
-  /*
-  double GetPhi(int id=0) {
-    double phi = fPosit.at(0).Phi();
-    if(phi<0) {
-      return TMath::TwoPi()+phi;
-    } else {
-      return phi;
-    }
-  }
-  double GetTheta(int id=0)    const { return fPosit.at(id).Theta(); }
-  double GetPhiDeg(int id=0)   const { return GetPhi(id)*TMath::RadToDeg(); }
-  double GetThetaDeg(int id=0) const { return GetTheta(id)*TMath::RadToDeg(); }
-  */
 
+  double GetPhi() const {
+    double phi = fPosit.Phi();
+    //    if(phi<0) {
+    //      return TMath::TwoPi()+phi;
+    //    } else {
+    //    return phi;
+    //    }
+    if (phi>TMath::PiOver2())
+      phi -= 3.*TMath::PiOver2();
+    else
+      phi += TMath::PiOver2();
+    return phi;
+  }
+  double GetTheta() const { return fPosit.Theta(); }
   
   //void SetPosition(TVector3 &vec) { fCorePosition = vec; }
 
-  
-
-  int      fEnergy;
+  double   fEnergy;
   TVector3 fPosit;
   TVector3 fInteraction;
   double   fBeta;

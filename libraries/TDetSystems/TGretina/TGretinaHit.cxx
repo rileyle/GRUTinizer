@@ -154,6 +154,14 @@ void TGretinaHit::BuildFrom(TSmartBuffer& buf){
     }
   }
 
+  // Store the energy of the first IP in the raw data  // LR
+  // (In simulated data, this is the true first IP.)   // LR
+  fZerothInteractionEnergy = raw.intpts[0].seg_ener;   // LR
+  fZerothInteractionPosition = TGretina::CrystalToGlobal(fCrystalId,       // LR
+							 raw.intpts[0].x,  // LR
+							 raw.intpts[0].y,  // LR
+							 raw.intpts[0].z); // LR
+
   SortHits();
   //  Print("all");
 
@@ -360,12 +368,18 @@ TVector3 TGretinaHit::GetFirstIntPosition() const {
   double zoffset = GValue::Value("GRETINA_Z_OFFSET");
   if(std::isnan(zoffset))
     zoffset=0.00;
- 
-  TVector3 offset(xoffset,yoffset,zoffset);
   
-  if(GetFirstIntPoint()>-1)
-     return GetInteractionPosition(GetFirstIntPoint()) + offset;
-   return TDetectorHit::BeamUnitVec;
+  TVector3 offset(xoffset,yoffset,zoffset);
+
+  if(GetFirstIntPoint()>-1){
+    TVector3 IntPos = GetInteractionPosition(GetFirstIntPoint());
+    IntPos.SetX(IntPos.X()+xoffset);
+    IntPos.SetY(IntPos.Y()+yoffset);
+    IntPos.SetZ(IntPos.Z()+zoffset);
+
+    return IntPos;
+  }
+  return TDetectorHit::BeamUnitVec;
 }
 
 TVector3 TGretinaHit::GetFirstIntPosition_2() const {
