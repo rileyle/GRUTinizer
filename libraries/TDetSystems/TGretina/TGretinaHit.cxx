@@ -60,6 +60,8 @@ void TGretinaHit::Copy(TObject &rhs) const {
     ((TGretinaHit&)rhs).fInteractionEnergy = fInteractionEnergy;
     ((TGretinaHit&)rhs).fInteractionFraction = fInteractionFraction;
   //}
+  ((TGretinaHit&)rhs).fZerothInteractionEnergy = fZerothInteractionEnergy;
+  ((TGretinaHit&)rhs).fZerothInteractionPosition = fZerothInteractionPosition;
 }
 
 Float_t TGretinaHit::GetCoreEnergy(int i) const {
