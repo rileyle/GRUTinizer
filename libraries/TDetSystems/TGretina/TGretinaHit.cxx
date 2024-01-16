@@ -265,6 +265,18 @@ double TGretinaHit::GetDoppler(double beta,const TVector3 *vec) {
   return tmp;
 } 
 
+double TGretinaHit::GetDopplerE(double beta, const TVector3 *vec, double en) {
+  if(Size()<1)
+    return 0.0;
+  if(vec==0) {
+    vec = &BeamUnitVec;
+  }
+  double tmp = 0.0;
+  double gamma = 1/(sqrt(1-pow(beta,2)));
+  tmp = en*gamma *(1 - beta*TMath::Cos(GetPosition().Angle(*vec)));
+  return tmp;
+} 
+
 double TGretinaHit::GetDoppler_dB(double beta, const TVector3 *vec,double Dta){
   if(Size()<1)
     return 0.0;
@@ -281,6 +293,22 @@ double TGretinaHit::GetDoppler_dB(double beta, const TVector3 *vec,double Dta){
   return tmp;
 }
 
+double TGretinaHit::GetDopplerE_dB(double beta, const TVector3 *vec,
+				  double Dta, double en){
+  if(Size()<1)
+    return 0.0;
+  if(vec==0) {
+    vec = &BeamUnitVec;
+  }
+  double tmp = 0.0;
+  double gamma = 1.0/(sqrt(1.0-pow(beta,2.0)));
+  // Do beta correction here.
+  double dp_p = gamma/(1.0+gamma)*Dta;
+  beta *= (1.0+dp_p/(gamma*gamma));
+  double TheGamma = 1.0/TMath::Sqrt(1.0-beta*beta);
+  tmp = en*TheGamma *(1.0 - beta*TMath::Cos(GetPosition().Angle(*vec)));
+  return tmp;
+}
 
 int TGretinaHit::CleanInteractions() {
   std::map<int,TInteractionPoint> int_map;

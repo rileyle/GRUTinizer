@@ -119,8 +119,10 @@ public:
   bool HasInteractions() { return fNumberOfInteractions; }
   bool operator<(const TGretinaHit &rhs) const { return fCoreEnergy > rhs.fCoreEnergy; }
 
-  double GetDoppler(double beta,const TVector3 *vec=0);
-  double GetDoppler_dB(double beta,const TVector3 *vec=0, double Dta=0);
+  double GetDoppler(double beta, const TVector3 *vec=0);
+  double GetDopplerE(double beta, const TVector3 *vec=0, double en=0);
+  double GetDoppler_dB(double beta, const TVector3 *vec=0, double Dta=0);
+  double GetDopplerE_dB(double beta, const TVector3 *vec=0, double Dta=0, double en=0);
 
   TVector3 GetPosition() const; //                  const { return GetIntPosition(0); }
 
