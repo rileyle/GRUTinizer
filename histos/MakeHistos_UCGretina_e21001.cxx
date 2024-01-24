@@ -88,13 +88,13 @@ void MakeHistograms(TRuntimeObjects& obj) {
 			360, 0., 360.,
 			hit.GetPhi()*TMath::RadToDeg());
       obj.FillHistogram("sim","emitted_z",
-			1000,-50., 50.,
+			2000,-50., 150.,
 			hit.GetZ());
       obj.FillHistogram("sim","beta",
      			500, 0, 0.5,
      			hit.GetBeta());
       obj.FillHistogram("sim","beta_z",
-     			1000,-5,5.,
+     			2000, -50, 150.,
      			hit.GetZ(),
      			300, 0.2, 0.5,
      			hit.GetBeta());
