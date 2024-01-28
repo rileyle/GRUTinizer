@@ -536,8 +536,8 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
 		       hit.GetDopplerE(beta, &track, en));
 		       //hit.GetDoppler(beta, &track));
 
-     if(scatter < 35.0) {
-       histname = Form("doppler_s800_0-35mrad_%s_%s_t",
+     if(scatter < 40.0) {
+       histname = Form("doppler_s800_0-40mrad_%s_%s_t",
 		       incoming->GetName(),
 		       outgoing->GetName());
        obj.FillHistogram(dirname, histname,
@@ -545,7 +545,7 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
 			 hit.GetDopplerE(beta, &track, en));
 			 //hit.GetDoppler(beta, &track));
      } else {
-       histname = Form("doppler_s800_35-100mrad_%s_%s_t",
+       histname = Form("doppler_s800_40-100mrad_%s_%s_t",
 		       incoming->GetName(),
 		       outgoing->GetName());
        obj.FillHistogram(dirname, histname,
