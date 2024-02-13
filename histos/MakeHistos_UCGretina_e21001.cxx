@@ -71,9 +71,9 @@ void MakeHistograms(TRuntimeObjects& obj) {
   TList *list = &(obj.GetObjects());
   int numobj = list->GetSize();
 
-  Int_t    energyNChannels = 8192;
+  Int_t    energyNChannels = 4000.;
   Double_t energyLlim = 0.;
-  Double_t energyUlim = 8192.;
+  Double_t energyUlim = 4000.;
 
   if(gretSim){
     for(unsigned int x=0; x<gretSim->Size(); x++){
@@ -128,40 +128,72 @@ void MakeHistograms(TRuntimeObjects& obj) {
      //  	      << dta << std::endl;
     
 
-     obj.FillHistogram("s800","dta",
-		       200, -0.10, 0.10,
-		       dta);
-
      // Rough dta acceptance cut
      if(dta < -0.06 || dta > 0.06)
        return;
-  
-     obj.FillHistogram("s800","dta_cut",
-		       200, -0.10, 0.10,
-		       dta);
 
-     obj.FillHistogram("s800","ata",
-		       200, -100, 100,
-		       s800Sim->GetS800SimHit(0).GetATA()*1000.);
-
-     obj.FillHistogram("s800","bta",
-		       200, -100, 100,
-		       s800Sim->GetS800SimHit(0).GetBTA()*1000.);
-     
      Double_t ata, bta, scatter;
 
      ata = s800Sim->GetS800SimHit(0).GetATA()*1000.;
      bta = s800Sim->GetS800SimHit(0).GetBTA()*1000.;
+
+     // e21001 observed acceptance cut
+     if(ata > -45.0) {
+       obj.FillHistogram("s800","ata_cut",
+			 200, -100, 100,
+			 ata);
+
+       obj.FillHistogram("s800","bta_cut",
+			 200, -100, 100,
+			 bta);
+
+       obj.FillHistogram("s800","ata_bta_cut",
+			 200, -100, 100,
+			 bta,
+			 200, -100, 100,
+			 ata);
+
+       scatter = sqrt(ata*ata + bta*bta);
+     
+       obj.FillHistogram("s800","scatter_cut",
+			 200, 0, 200,
+			 scatter);
+     
+       obj.FillHistogram("s800","dta_cut",
+			 200, -0.10, 0.10,
+			 dta);
+
+       obj.FillHistogram("s800","yta_cut",
+			 400, -20, 20,
+			 s800Sim->GetS800SimHit(0).GetYTA());
+     }
+     obj.FillHistogram("s800","ata",
+		       200, -100, 100,
+		       ata);
+
+     obj.FillHistogram("s800","bta",
+		       200, -100, 100,
+		       bta);
+
+     obj.FillHistogram("s800","ata_bta",
+		       200, -100, 100,
+		       bta,
+		       200, -100, 100,
+		       ata);
+
      scatter = sqrt(ata*ata + bta*bta);
      
      obj.FillHistogram("s800","scatter",
 		       200, 0, 200,
 		       scatter);
      
+     obj.FillHistogram("s800","dta",
+		       200, -0.10, 0.10,
+		       dta);
+
      obj.FillHistogram("s800","yta",
 		       400, -20, 20,
 		       s800Sim->GetS800SimHit(0).GetYTA());
-
   }
   
   if(!gretina)
@@ -243,12 +275,12 @@ void MakeHistograms(TRuntimeObjects& obj) {
       
 	obj.FillHistogram("energy",
 			  Form("gamma_gamma_dop_%.0f_gaus", betas[i]*10000),
-			  energyNChannels/16, energyLlim, energyUlim/2, e1,
-			  energyNChannels/16, energyLlim, energyUlim/2, e2);
+			  energyNChannels/16, energyLlim, energyUlim, e1,
+			  energyNChannels/16, energyLlim, energyUlim, e2);
 	obj.FillHistogram("energy",
 			  Form("gamma_gamma_dop_%.0f_gaus", betas[i]*10000),
-			  energyNChannels/8, energyLlim, energyUlim, e2,
-			  energyNChannels/8, energyLlim, energyUlim, e1);
+			  energyNChannels/16, energyLlim, energyUlim, e2,
+			  energyNChannels/16, energyLlim, energyUlim, e1);
       }
     
       obj.FillHistogram("energy",
@@ -261,6 +293,212 @@ void MakeHistograms(TRuntimeObjects& obj) {
 			energyNChannels, energyLlim, energyUlim,
 			hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
 
+      // Angular cuts for Alder-Winther Coulex analysis
+      if(s800Sim->Size() > 0){
+	Double_t ata = s800Sim->GetS800SimHit(0).GetATA()*1000.;
+	Double_t bta = s800Sim->GetS800SimHit(0).GetBTA()*1000.;
+	Double_t scatter = sqrt(ata*ata + bta*bta);
+	// e21001 observed acceptance cut
+	if(ata > -45.0) {
+	  if(scatter < 45.0) {
+	    obj.FillHistogram("energy",
+			      Form("dop_0-45mrad_%.0f_cut", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i]));
+
+	    obj.FillHistogram("energy",
+			      Form("dop_0-45mrad_%.0f_cut_gaus", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	  }
+	  if(scatter < 50.0) {
+	    obj.FillHistogram("energy",
+			      Form("dop_0-50mrad_%.0f_cut", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i]));
+
+	    obj.FillHistogram("energy",
+			      Form("dop_0-50mrad_%.0f_cut_gaus", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	  }
+	  if(scatter < 60.0) {
+	    obj.FillHistogram("energy",
+			      Form("dop_0-60mrad_%.0f_cut", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i]));
+
+	    obj.FillHistogram("energy",
+			      Form("dop_0-60mrad_%.0f_cut_gaus", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	  }
+	  if(scatter < 70.0) {
+	    obj.FillHistogram("energy",
+			      Form("dop_0-70mrad_%.0f_cut", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i]));
+
+	    obj.FillHistogram("energy",
+			      Form("dop_0-70mrad_%.0f_cut_gaus", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	  }
+	  if(scatter < 80.0) {
+	    obj.FillHistogram("energy",
+			      Form("dop_0-80mrad_%.0f_cut", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i]));
+
+	    obj.FillHistogram("energy",
+			      Form("dop_0-80mrad_%.0f_cut_gaus", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	  }
+	  if(scatter < 90.0) {
+	    obj.FillHistogram("energy",
+			      Form("dop_0-90mrad_%.0f_cut", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i]));
+
+	    obj.FillHistogram("energy",
+			      Form("dop_0-90mrad_%.0f_cut_gaus", betas[i]*10000),
+			      energyNChannels, energyLlim, energyUlim,
+			      hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	  }
+	  obj.FillHistogram("energy",
+			    Form("dop_%.0f_cut", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_%.0f_cut_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}      
+	if(scatter < 20.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-20mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-20mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 25.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-25mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-25mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 30.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-30mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-30mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 35.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-35mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-35mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 40.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-40mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-40mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 45.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-45mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-45mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 50.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-50mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-50mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 60.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-60mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-60mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 70.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-70mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-70mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 80.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-80mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-80mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+	if(scatter < 90.0) {
+	  obj.FillHistogram("energy",
+			    Form("dop_0-90mrad_%.0f", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i]));
+
+	  obj.FillHistogram("energy",
+			    Form("dop_0-90mrad_%.0f_gaus", betas[i]*10000),
+			    energyNChannels, energyLlim, energyUlim,
+			    hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
+	}
+      }
+      
       if(hit.GetHoleNumber() < 10){
 	obj.FillHistogram("energy",
 			  Form("dop_fw_%.0f_gaus", betas[i]*10000),
@@ -273,27 +511,60 @@ void MakeHistograms(TRuntimeObjects& obj) {
 			  hit.GetDoppler(betas[i])*gRandom->Gaus(1,1./1000.));
       }
     }
-    
-    obj.FillHistogram("position", "theta_vs_phi",
-		      360, 0., 360.,
-		      hit.GetPhi()*TMath::RadToDeg(),
-		      180, 0., 180.,
-		      hit.GetTheta()*TMath::RadToDeg());
 
-    if(hit.GetHoleNumber() < 10){
-      obj.FillHistogram("position", "theta_vs_phi_fw",
+    // e21001 observed acceptance cut
+    if(s800Sim->Size() > 0){
+      Double_t ata = s800Sim->GetS800SimHit(0).GetATA()*1000.;
+
+      if(ata > -45.0) {
+	obj.FillHistogram("position", "theta_cut",
+			  180, 0., 180.,
+			  hit.GetTheta()*TMath::RadToDeg());
+
+	obj.FillHistogram("position", "theta_vs_phi_cut",
+			  360, 0., 360.,
+			  hit.GetPhi()*TMath::RadToDeg(),
+			  180, 0., 180.,
+			  hit.GetTheta()*TMath::RadToDeg());
+
+	if(hit.GetHoleNumber() < 10){
+	  obj.FillHistogram("position", "theta_vs_phi_fw_cut",
+			    360, 0., 360.,
+			    hit.GetPhi()*TMath::RadToDeg(),
+			    180, 0., 180.,
+			    hit.GetTheta()*TMath::RadToDeg());
+	} else {
+	  obj.FillHistogram("position", "theta_vs_phi_bw_cut",
+			    360, 0., 360.,
+			    hit.GetPhi()*TMath::RadToDeg(),
+			    180, 0., 180.,
+			    hit.GetTheta()*TMath::RadToDeg());
+	}
+      }
+      obj.FillHistogram("position", "theta",
+			180, 0., 180.,
+			hit.GetTheta()*TMath::RadToDeg());
+
+      obj.FillHistogram("position", "theta_vs_phi",
 			360, 0., 360.,
 			hit.GetPhi()*TMath::RadToDeg(),
 			180, 0., 180.,
 			hit.GetTheta()*TMath::RadToDeg());
-    } else {
-      obj.FillHistogram("position", "theta_vs_phi_bw",
-			360, 0., 360.,
-			hit.GetPhi()*TMath::RadToDeg(),
-			180, 0., 180.,
-			hit.GetTheta()*TMath::RadToDeg());
+
+      if(hit.GetHoleNumber() < 10){
+	obj.FillHistogram("position", "theta_vs_phi_fw",
+			  360, 0., 360.,
+			  hit.GetPhi()*TMath::RadToDeg(),
+			  180, 0., 180.,
+			  hit.GetTheta()*TMath::RadToDeg());
+      } else {
+	obj.FillHistogram("position", "theta_vs_phi_bw",
+			  360, 0., 360.,
+			  hit.GetPhi()*TMath::RadToDeg(),
+			  180, 0., 180.,
+			  hit.GetTheta()*TMath::RadToDeg());
+      }
     }
-    
   }
   
   // Addback

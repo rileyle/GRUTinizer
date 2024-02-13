@@ -314,9 +314,9 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
    
    std::string dirname = "gretina";
 
-   Int_t    energyNChannels = 2000;
+   Int_t    energyNChannels = 4000;
    Double_t energyLlim = 0.;
-   Double_t energyUlim = 8000.;
+   Double_t energyUlim = 4000.;
    
    double beta = GValue::Value("BETA");
    if(std::isnan(beta))
@@ -346,7 +346,7 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
      std::string histname = "energy";
      
      obj.FillHistogram(dirname, histname,
-		       energyNChannels*4, energyLlim, energyUlim,
+		       energyNChannels, energyLlim, energyUlim,
 		       en);
      //     		       hit.GetCoreEnergy());
 
@@ -357,7 +357,7 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
 
      histname = "overview";
      obj.FillHistogram(dirname, histname,
-		       energyNChannels*4, energyLlim, energyUlim,
+		       energyNChannels, energyLlim, energyUlim,
 		       en, //hit.GetCoreEnergy(),
 		       120, 0, 120,
 		       hit.GetCrystalId());
@@ -477,17 +477,29 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
        histname = Form("background_%s_%s",incoming->GetName(),
 		       outgoing->GetName());
        obj.FillHistogram(dirname, histname,
-			 energyNChannels*4, energyLlim, energyUlim,
+			 energyNChannels, energyLlim, energyUlim,
 			 en);
 			 //hit.GetCoreEnergy());
        histname = Form("background_dop_%s_%s",incoming->GetName(),
 		       outgoing->GetName());
        obj.FillHistogram(dirname, histname,
-			 energyNChannels*4, energyLlim, energyUlim,
+			 energyNChannels, energyLlim, energyUlim,
 			 hit.GetDopplerE(beta, 0, en));
 			 //hit.GetDoppler(beta, 0));
+
+       Double_t ata = s800->GetAta()*1000.;
+       Double_t bta = s800->GetBta()*1000.;
+       Double_t scatter = sqrt(ata*ata + bta*bta);
+
+       dirname = "S800";
+       histname = Form("background_scatter_%s_%s",
+		       incoming->GetName(),
+		       outgoing->GetName());
+       obj.FillHistogram(dirname, histname,
+			 100, 0, 100,
+			 scatter);
        return false;
-     }
+     } 
   
      histname = Form("doppler_%s_%s_t",incoming->GetName(),
 		     outgoing->GetName());
@@ -511,7 +523,15 @@ bool HandleGretina(TRuntimeObjects &obj,GCutG *incoming,
 		       energyNChannels, energyLlim, energyUlim,
 		       hit.GetDopplerE(beta, 0, en));
 		       //hit.GetDoppler(beta, 0));
-     
+
+     histname = Form("doppler_s800_theta_%s_%s_t",incoming->GetName(),
+		     outgoing->GetName());
+     obj.FillHistogram(dirname, histname,
+		       100, 0, TMath::Pi(),
+		       hit.GetTheta(),
+		       energyNChannels, energyLlim, energyUlim,
+		       hit.GetDopplerE(beta, &track, en));
+
      Double_t ata = s800->GetAta()*1000.;
      Double_t bta = s800->GetBta()*1000.;
      Double_t scatter = sqrt(ata*ata + bta*bta);
